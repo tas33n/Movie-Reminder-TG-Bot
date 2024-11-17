@@ -16,7 +16,7 @@ A Telegram bot that helps users set reminders for upcoming movie releases with w
   - Movie data visualization
   - Uptime monitoring
   - Responsive design
-- ⚙️ Dynamic configuration management  
+- ⚙️ Dynamic configuration management
 - 📊 Bot statistics tracking
 - 👥 Group notifications support
 - 🔐 Admin controllers
@@ -33,32 +33,35 @@ Before you begin, ensure you have met the following requirements:
 ## Installation
 
 1. Clone the repository:
-    ```bash
-    git clone https://github.com/tas33n/tg-movie-reminder.git
-    cd tg-movie-reminder
-    ```
+
+   ```bash
+   git clone https://github.com/tas33n/tg-movie-reminder.git
+   cd tg-movie-reminder
+   ```
 
 2. Install the dependencies:
-    ```bash
-    npm install
-    ```
+
+   ```bash
+   npm install
+   ```
 
 3. Create a `config.json` file in the root directory with the following content:
-    ```json
-    {
-      "botToken": "YOUR_TELEGRAM_BOT_TOKEN",
-      "mongodbUri": "YOUR_MONGODB_URI",
-      "tmdbApiKey": "YOUR_OMDB_API_KEY",
-      "adminIds": [123456789, 987654321],
-      "apiKey": "YOUR_API_KEY_FOR_EXPRESS_ENDPOINTS",
-      "sudoKey": "YOUR_SUDO_KEY_FOR_ADMIN_ENDPOINTS",
-      "groupID": "YOUR_TELEGRAM_GROUP_ID"
-    }
-    ```
+   ```json
+   {
+     "botToken": "YOUR_TELEGRAM_BOT_TOKEN",
+     "mongodbUri": "YOUR_MONGODB_URI",
+     "tmdbApiKey": "YOUR_OMDB_API_KEY",
+     "adminIds": [123456789, 987654321],
+     "apiKey": "YOUR_API_KEY_FOR_EXPRESS_ENDPOINTS",
+     "sudoKey": "YOUR_SUDO_KEY_FOR_ADMIN_ENDPOINTS",
+     "groupID": "YOUR_TELEGRAM_GROUP_ID"
+   }
+   ```
 
 ## Usage
 
 To start both the bot and web server:
+
 ```bash
 npm start
 ```
@@ -66,11 +69,13 @@ npm start
 ### Web Dashboard
 
 The web interface is automatically served when you start the server. Access it at:
+
 ```
 http://localhost:2233
 ```
 
 Features:
+
 - Toggle between grid and list views
 - View all movie reminders
 - Monitor bot uptime
@@ -79,6 +84,7 @@ Features:
 ### Available Commands
 
 User Commands:
+
 - `/start` - Start the bot and get a welcome message
 - `/help` - Display available commands and their usage
 - `/remind <movie name>; [MM-DD]` - Set an annual reminder for a movie
@@ -90,6 +96,7 @@ User Commands:
 - `/stats` - Show bot statistics
 
 Admin Commands:
+
 - `/config list` - List all configuration values
 - `/config get <key>` - Get specific configuration value
 - `/config set <key> <value>` - Update configuration
@@ -109,29 +116,34 @@ GET /stats - Get bot statistics
 ```
 
 ### API Authentication
+
 - Regular endpoints require `apiKey` query parameter
 - Admin endpoints require `X-Sudo-Key` header or `key` query parameter
 
 ## Features Technical Details
 
 ### Reminder System
+
 - Uses `node-cron` for scheduling checks every hour
 - Timezone-aware using `moment-timezone` (Asia/Dhaka)
 - Supports annual recurring reminders
 - Tracks last notification year to prevent duplicates
 
 ### Movie Data
+
 - Integrates with OMDB API for movie information
 - Supports both movie name and IMDB ID searches
 - Includes movie posters when available
 
 ### Database
+
 - MongoDB-based storage
 - Supports dynamic configuration
 - Tracks user statistics
 - Implements pagination for reminder lists
 
 ### Web Interface
+
 - Static file serving via Express
 - Real-time uptime monitoring
 - Grid/List view toggle functionality
@@ -167,7 +179,7 @@ Contributions to the Telegram Movie Reminder Bot are welcome. Please follow thes
 
 ## License
 
-This project is licensed under the ISC License.
+This project is licensed under the MIT License.
 
 ## Author
 

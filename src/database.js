@@ -6,15 +6,19 @@ mongoose.connect(config.mongodbUri);
 const reminderSchema = new mongoose.Schema({
   chatId: Number,
   movieName: String,
-  month: Number,          // Month of the reminder
-  day: Number,            // Day of the reminder
-  imdb: String,           // IMDB ID
-  lastNotifiedYear: Number // Year when the last notification was sent
+  month: Number,
+  day: Number,
+  imdb: String,
+  lastNotifiedYear: Number,
+  img: {
+    data: Buffer,
+    contentType: String,
+  },
 });
 
 const configSchema = new mongoose.Schema({
   key: String,
-  value: mongoose.Schema.Types.Mixed
+  value: mongoose.Schema.Types.Mixed,
 });
 
 const Reminder = mongoose.model("Reminder", reminderSchema);
@@ -38,7 +42,7 @@ module.exports = {
   getAllConfig: async function (includeSensitive = false) {
     const configs = await Config.find();
     return configs.reduce((acc, config) => {
-      if (!includeSensitive && config.key.toLowerCase().includes('token')) {
+      if (!includeSensitive && config.key.toLowerCase().includes("token")) {
         return acc;
       }
       acc[config.key] = config.value;
@@ -53,15 +57,23 @@ module.exports = {
   },
 
   // reminder db functions
-  createReminder: async (chatId, movieName, month, day, imdb = "", lastNotifiedYear) => {
-    const reminder = new Reminder({ chatId, movieName, month, day, imdb, lastNotifiedYear });
+  createReminder: async (chatId, movieName, month, day, imdb = "", lastNotifiedYear = null, imgBuffer = null, imgContentType = null) => {
+    const reminder = new Reminder({
+      chatId,
+      movieName,
+      month,
+      day,
+      imdb,
+      lastNotifiedYear,
+      img: imgBuffer && imgContentType ? { data: imgBuffer, contentType: imgContentType } : null,
+    });
     await reminder.save();
     return reminder;
   },
 
   getReminders: async (chatId) => {
     return await Reminder.find({
-      chatId
+      chatId,
     });
   },
 
@@ -79,8 +91,8 @@ module.exports = {
       day,
       $or: [
         { lastNotifiedYear: { $ne: currentYear } }, // Has not been notified this year
-        { lastNotifiedYear: null } // Or never notified
-      ]
+        { lastNotifiedYear: null }, // Or never notified
+      ],
     });
   },
 
