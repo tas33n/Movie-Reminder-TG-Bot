@@ -102,12 +102,12 @@ async function initializeBot() {
   bot.command("help", (ctx) => {
     ctx.reply(
       "🎥 <b>Movie Reminder Bot Commands</b>\n\n" +
-        "/remind &lt;movie name&gt; [MM-DD] - Set a reminder for a movie\n" +
-        "/list - List your reminders\n" +
-        "/delete &lt;reminder_id&gt; - Delete a reminder\n" +
-        "/search &lt;movie name&gt; - Search for a movie\n\n" +
-        "<b>Admin commands:</b>\n" +
-        "/stats - Show bot statistics",
+      "/remind &lt;movie name&gt; [MM-DD] - Set a reminder for a movie\n" +
+      "/list - List your reminders\n" +
+      "/delete &lt;reminder_id&gt; - Delete a reminder\n" +
+      "/search &lt;movie name&gt; - Search for a movie\n\n" +
+      "<b>Admin commands:</b>\n" +
+      "/stats - Show bot statistics",
       {
         parse_mode: "HTML",
         reply_to_message_id: ctx.message.message_id,
@@ -150,9 +150,8 @@ async function initializeBot() {
     currentReminders.forEach((reminder, index) => {
       message += `${start + index + 1}. ${reminder.movieName} - ${String(
         reminder.month
-      ).padStart(2, "0")}-${String(reminder.day).padStart(2, "0")} (ID: <code>${
-        reminder.imdb
-      }</code>)\n`;
+      ).padStart(2, "0")}-${String(reminder.day).padStart(2, "0")} (ID: <code>${reminder.imdb
+        }</code>)\n`;
     });
     message += `\nPage ${page} of ${totalPages}`;
 
@@ -273,8 +272,8 @@ async function initializeBot() {
     const stats = await db.getStats();
     ctx.reply(
       `📊 <b>Bot Statistics</b>\n\n` +
-        `Total Users: ${stats.totalUsers}\n` +
-        `Total Reminders: ${stats.totalReminders}\n`,
+      `Total Users: ${stats.totalUsers}\n` +
+      `Total Reminders: ${stats.totalReminders}\n`,
       {
         parse_mode: "HTML",
         reply_to_message_id: ctx.message.message_id,
@@ -289,13 +288,13 @@ async function initializeBot() {
     if (args.length === 1) {
       return ctx.reply(
         "📝 <b>Config Management</b>\n\n" +
-          "Commands:\n" +
-          "/config list - Show all configuration\n" +
-          "/config get &lt;key&gt; - Get specific config value\n" +
-          "/config set &lt;key&gt; &lt;value&gt; - Set config value\n" +
-          "/config delete &lt;key&gt; - Delete config key\n\n" +
-          "Example:\n" +
-          "/config set groupId -1001234567890",
+        "Commands:\n" +
+        "/config list - Show all configuration\n" +
+        "/config get &lt;key&gt; - Get specific config value\n" +
+        "/config set &lt;key&gt; &lt;value&gt; - Set config value\n" +
+        "/config delete &lt;key&gt; - Delete config key\n\n" +
+        "Example:\n" +
+        "/config set groupId -1001234567890",
         {
           parse_mode: "HTML",
           reply_to_message_id: ctx.message.message_id,
@@ -318,9 +317,9 @@ async function initializeBot() {
 
           ctx.reply(
             "⚙️ <b>Current Configuration</b>\n\n" +
-              "<pre>" +
-              JSON.stringify(safeConfig, null, 2) +
-              "</pre>",
+            "<pre>" +
+            JSON.stringify(safeConfig, null, 2) +
+            "</pre>",
             {
               parse_mode: "HTML",
               reply_to_message_id: ctx.message.message_id,
@@ -519,22 +518,7 @@ async function initializeBot() {
         `⚠️ A reminder is already set for "${existingReminder.movieName} (ID: <code>${existingReminder._id}</code>)".`,
         { parse_mode: "HTML", reply_to_message_id: ctx.message.message_id }
       );
-    }
-
-    let imgBuffer = null;
-    let imgContentType = null;
-
-    if (posterUrl) {
-      try {
-        const response = await axios.get(posterUrl, {
-          responseType: "arraybuffer",
-        });
-        imgBuffer = Buffer.from(response.data, "binary");
-        imgContentType = response.headers["content-type"];
-      } catch (error) {
-        console.log("Error fetching poster image:", error.message);
-      }
-    }
+    };
 
     await db.createReminder(
       ctx.from.id,
@@ -542,16 +526,14 @@ async function initializeBot() {
       month,
       day,
       imdb,
-      null,
-      imgBuffer,
-      imgContentType
+      posterUrl,
+      null
     );
 
-    const message = `🎬 Annual reminder set for "${
-      imdb
-        ? `<a href="https://www.imdb.com/title/${imdb}/">${nameToSave}</a>`
-        : nameToSave
-    }" on ${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const message = `🎬 Annual reminder set for "${imdb
+      ? `<a href="https://www.imdb.com/title/${imdb}/">${nameToSave}</a>`
+      : nameToSave
+      }" on ${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
     if (posterUrl) {
       await ctx.replyWithPhoto(
@@ -592,22 +574,14 @@ async function initializeBot() {
             groupID, // chat id
             image,
             {
-              caption: `🎬 Reminder: The movie "<a href="https://www.imdb.com/title/${
-                reminder.imdb
-              }/">${
-                reminder.movieName
-              }</a>" is scheduled for tomorrow (${String(month).padStart(
-                2,
-                "0"
-              )}-${String(day).padStart(2, "0")})!`,
+              caption: `🎬 Reminder: The movie "<a href="https://www.imdb.com/title/${reminder.imdb}/">${reminder.movieName}</a>" is scheduled for tomorrow (${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")})!`,
               parse_mode: "HTML",
             }
           );
         } else {
           await bot.telegram.sendMessage(
             groupID, // chat id
-            `🎬 Reminder: The movie "<a href="https://www.imdb.com/title/${
-              reminder.imdb
+            `🎬 Reminder: The movie "<a href="https://www.imdb.com/title/${reminder.imdb
             }/">${reminder.movieName}</a>" is scheduled for tomorrow (${String(
               month
             ).padStart(2, "0")}-${String(day).padStart(2, "0")})!`,
@@ -617,8 +591,7 @@ async function initializeBot() {
       } else {
         await bot.telegram.sendMessage(
           groupID, // chat id
-          `🎬 Reminder: The movie "${
-            reminder.movieName
+          `🎬 Reminder: The movie "${reminder.movieName
           }" is scheduled for tomorrow (${String(month).padStart(
             2,
             "0"

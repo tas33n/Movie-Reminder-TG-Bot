@@ -9,11 +9,9 @@ const reminderSchema = new mongoose.Schema({
   month: Number,
   day: Number,
   imdb: String,
-  lastNotifiedYear: Number,
-  img: {
-    data: Buffer,
-    contentType: String,
-  },
+  img: String,
+  lastNotifiedYear: Number
+  
 });
 
 const configSchema = new mongoose.Schema({
@@ -57,15 +55,15 @@ module.exports = {
   },
 
   // reminder db functions
-  createReminder: async (chatId, movieName, month, day, imdb = "", lastNotifiedYear = null, imgBuffer = null, imgContentType = null) => {
+  createReminder: async (chatId, movieName, month, day, imdb = "", img = "", lastNotifiedYear = null) => {
     const reminder = new Reminder({
       chatId,
       movieName,
       month,
       day,
       imdb,
-      lastNotifiedYear,
-      img: imgBuffer && imgContentType ? { data: imgBuffer, contentType: imgContentType } : null,
+      img,
+      lastNotifiedYear
     });
     await reminder.save();
     return reminder;
@@ -94,16 +92,6 @@ module.exports = {
         { lastNotifiedYear: null }, // Or never notified
       ],
     });
-  },
-
-  markNotifiedBeforeRelease: async (reminderId) => {
-    await Reminder.findByIdAndUpdate(reminderId, {
-      notifiedBeforeRelease: true,
-    });
-  },
-
-  markNotifiedOnRelease: async (reminderId) => {
-    await Reminder.findByIdAndUpdate(reminderId, { notifiedOnRelease: true });
   },
 
   getReminderByMovie: async (movieName) => {

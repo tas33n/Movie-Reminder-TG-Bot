@@ -47,7 +47,7 @@
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://misfitsdev.pro" />
-    <meta property="og:image" content="/thumb.jpg" />
+    <meta property="og:image" content="assets/thumb.jpg" />
 
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -56,12 +56,12 @@
       name="twitter:description"
       content="Get timely reminders about upcoming movies with our Telegram bot. Never miss your favorite film releases again!"
     />
-    <meta name="twitter:image" content="/thumb.jpg" />
+    <meta name="twitter:image" content="assets/thumb.jpg" />
 
     <meta name="theme-color" content="#3b82f6" />
 
     <title>Movie Reminder TG Bot</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
 
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
@@ -470,10 +470,8 @@
 
       function createMovieItem(movie) {
         // Convert the image buffer to Base64 string
-        const posterUrl = movie.img?.data?.data
-          ? `data:${movie.img.contentType};base64,${btoa(
-              String.fromCharCode(...new Uint8Array(movie.img.data.data))
-            )}`
+        const posterUrl = movie.img
+          ? movie.img
           : "https://i.postimg.cc/nL1vy3gw/giorenzo-gets-sent-to-live-with-simba-and-nala-fan-casting-poster-477058-medium.jpg";
 
         return `
