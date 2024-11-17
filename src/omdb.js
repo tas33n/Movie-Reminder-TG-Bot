@@ -1,5 +1,5 @@
 const axios = require('axios');
-const config = require('./config.json');
+const config = require('../config.json');
 
 function checkHasYear(title) {
   // Regex to match title with year

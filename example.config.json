@@ -1,10 +1,16 @@
 {
-  "botToken": "",
+  "botToken": "7351975694:AAF",
   "mongodbUri": "mongodb+srv://",
   "tmdbApiKey": "",
-  "omdbApiKey": "",
-  "adminIds": [
-    1028170480
+  "omdbApiKey": [
+    "111111",
+    "2222222"
   ],
-  "apiKey": "dood"
+  "adminIds": [
+    1028170480,
+    1183983867
+  ],
+  "groupID": -12345678,
+  "apiKey": "dood",
+  "sudoKey": "doodxboob"
 }

@@ -5,7 +5,7 @@ const db = require('./database');
 const omdb = require('./omdb');
 const axios = require('axios');
 const chalk = require('chalk');
-const jsonConfig = require('./config.json');
+const jsonConfig = require('../config.json');
 const mongoose = require("mongoose");
 
 async function initializeBot() {
