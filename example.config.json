@@ -1,0 +1,10 @@
+{
+  "botToken": "",
+  "mongodbUri": "mongodb+srv://",
+  "tmdbApiKey": "",
+  "omdbApiKey": "",
+  "adminIds": [
+    1028170480
+  ],
+  "apiKey": "dood"
+}
