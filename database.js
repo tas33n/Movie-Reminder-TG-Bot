@@ -12,9 +12,47 @@ const reminderSchema = new mongoose.Schema({
   lastNotifiedYear: Number // Year when the last notification was sent
 });
 
+const configSchema = new mongoose.Schema({
+  key: String,
+  value: mongoose.Schema.Types.Mixed
+});
+
 const Reminder = mongoose.model("Reminder", reminderSchema);
+const Config = mongoose.model("Config", configSchema);
 
 module.exports = {
+  // config db functions
+  getConfig: async function (key) {
+    const config = await Config.findOne({ key });
+    return config ? config.value : null;
+  },
+
+  setConfig: async function (key, value) {
+    await Config.findOneAndUpdate({ key }, { value }, { upsert: true });
+  },
+
+  deleteConfig: async function (key) {
+    await Config.findOneAndDelete({ key });
+  },
+
+  getAllConfig: async function (includeSensitive = false) {
+    const configs = await Config.find();
+    return configs.reduce((acc, config) => {
+      if (!includeSensitive && config.key.toLowerCase().includes('token')) {
+        return acc;
+      }
+      acc[config.key] = config.value;
+      return acc;
+    }, {});
+  },
+
+  initializeConfig: async function (jsonConfig) {
+    for (const [key, value] of Object.entries(jsonConfig)) {
+      await this.setConfig(key, value);
+    }
+  },
+
+  // reminder db functions
   createReminder: async (chatId, movieName, month, day, imdb = "", lastNotifiedYear) => {
     const reminder = new Reminder({ chatId, movieName, month, day, imdb, lastNotifiedYear });
     await reminder.save();

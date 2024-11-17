@@ -3,12 +3,20 @@ const config = require('./config.json');
 const db = require('./database');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 2233;
 
 // Middleware to check API key
 const checkApiKey = (req, res, next) => {
   const apiKey = req.query.key;
   if (apiKey !== config.apiKey) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+}; 
+
+const checksudoKey = (req, res, next) => {
+  const sudoKey = req.query.key || req.get('X-Sudo-Key');
+  if (sudoKey !== config.sudoKey) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   next();
@@ -25,9 +33,15 @@ app.get('/uptime', (req, res) => {
 
 // Get all reminders (protected)
 app.get('/reminders', checkApiKey, async (req, res) => {
+  const userid = req.query.id || null;
   try {
-    const reminders = await db.getReminders(1005163422);
-    res.json(reminders);
+    if (userid) {
+      const reminders = await db.getReminders(userid);
+      res.json(reminders);
+    } else {
+      const reminders = await db.getAll();
+      res.json(reminders);
+    }
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -45,9 +59,9 @@ app.post('/reminders', checkApiKey, async (req, res) => {
 });
 
 // Delete a reminder (protected)
-app.delete('/reminders/:id', checkApiKey, async (req, res) => {
+app.delete('/reminders/:chatid/:id', checksudoKey, async (req, res) => {
   try {
-    await db.deleteReminder(req.params.id);
+    await db.deleteReminder(req.params.chatid, req.params.id);
     res.status(204).end();
   } catch (error) {
     res.status(404).json({ error: 'Reminder not found' });
