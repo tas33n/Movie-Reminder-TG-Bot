@@ -54,14 +54,6 @@ async function initializeBot() {
       .replace(/: null/g, `: ${chalk.gray("null")}`);
   }
 
-  bot.use((ctx, next) => {
-    const update = ctx?.update;
-    if (!update?.message?.text) return;
-    console.log(chalk.blue(`[${new Date().toISOString()}] Received update:`));
-    console.log(parsejson(update.message.text));
-    return next();
-  });
-
   // all commands
   const commands = [
     { command: "start", description: "Start the bot" },
@@ -150,8 +142,7 @@ async function initializeBot() {
     currentReminders.forEach((reminder, index) => {
       message += `${start + index + 1}. ${reminder.movieName} - ${String(
         reminder.month
-      ).padStart(2, "0")}-${String(reminder.day).padStart(2, "0")} (ID: <code>${reminder.imdb
-        }</code>)\n`;
+      ).padStart(2, "0")}-${String(reminder.day).padStart(2, "0")} (ID: <code>${reminder._id}</code>)\n`;
     });
     message += `\nPage ${page} of ${totalPages}`;
 
