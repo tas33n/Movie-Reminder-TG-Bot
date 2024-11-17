@@ -342,9 +342,8 @@
 
 <body class="light">
     <header class="header">
-        <img src="https://sadman.misfitsdev.pro/assets/img/logo-colorful-transparent.png" alt="BPDB Logo"
-            class="logo" />
-        <h2>Movie Reminder TG Bot</h2>
+        <img src="assets/gold.png" width="50%" alt="Chronoloid"/>
+        <h2>Reminders</h2>
     </header>
     <div class="container">
         <button class="theme-toggle" id="themeToggle">🌙</button>
@@ -416,8 +415,9 @@
 
         let allMovies = [];
         let displayedMovies = 0;
-        const MOVIES_PER_BATCH = 10;
+        const MOVIES_PER_BATCH = 30;
         let movieCount = 0;
+        const fetchedMovies = new Map();
 
         function createMovieItem(movie) {
             const posterUrl = movie.poster_path
@@ -425,21 +425,21 @@
                 : 'https://via.placeholder.com/500x750.png?text=No+Poster+Available';
 
             return `
-        <div class="movie-item card position-relative" data-id="${movie._id}">
-            <img src="${posterUrl}" alt="${movie.movieName}" class="movie-poster card-img-top">
-            <div class="movie-info card-body">
-                <h5 class="card-title">${movie.movieName}</h5>
-                <p class="release-date">${formatDate(movie.month, movie.day)}</p>
-                <p>IMDB: <span class="imdb-badge">${movie.imdb || 'N/A'}</span></p>
-                <button class="user-id-btn btn btn-primary" data-userid="${movie.chatId}">User ID: ${movie.chatId}</button>
-            </div>
-            <button class="count-btn">
-                <i>${++movieCount}</i>
-            </button>
-            <button class="delete-btn" data-userid="${movie.chatId}" data-id="${movie._id}">
-                <i class="fas fa-trash-alt"></i>
-            </button>
+    <div class="movie-item card position-relative" data-id="${movie._id}">
+        <img src="${posterUrl}" alt="${movie.movieName}" class="movie-poster card-img-top">
+        <div class="movie-info card-body">
+            <h5 class="card-title">${movie.movieName}</h5>
+            <p class="release-date">${formatDate(movie.month, movie.day)}</p>
+            <p>IMDB: <span class="imdb-badge">${movie.imdb ? `<a href="https://www.imdb.com/title/${movie.imdb}/">${movie.imdb}</a>` : 'N/A'}</span></p>
+            <button class="user-id-btn btn btn-primary" data-userid="${movie.chatId}">User ID: ${movie.chatId}</button>
         </div>
+        <button class="count-btn">
+            <i>${++movieCount}</i>
+        </button>
+        <button class="delete-btn" data-userid="${movie.chatId}" data-id="${movie._id}">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+    </div>
     `;
         }
 
@@ -447,21 +447,39 @@
             if (!imdbId) {
                 return Promise.resolve({});
             }
+            if (fetchedMovies.has(imdbId)) {
+                return Promise.resolve(fetchedMovies.get(imdbId));
+            }
+
             return $.ajax({
                 url: `https://api.themoviedb.org/3/find/${imdbId}?api_key=42fcfc7411347ac30138bfd66d89262d&external_source=imdb_id`,
                 method: 'GET'
-            }).then(data => data.movie_results[0] || {});
-        }
-        function renderMovies() {
-            const nextBatch = allMovies.slice(displayedMovies, displayedMovies + MOVIES_PER_BATCH);
-            const movieItems = nextBatch.map(createMovieItem).join('');
-            movieContainer.insertAdjacentHTML('beforeend', movieItems);
-            displayedMovies += nextBatch.length;
-            if (displayedMovies >= allMovies.length) {
-                loadMoreButton.style.display = 'none !important';
-            }
+            }).then(data => {
+                const movieData = data.movie_results[0] || {};
+                fetchedMovies.set(imdbId, movieData); // Cache the result
+                return movieData;
+            });
         }
 
+        function renderMovies() {
+            const nextBatch = allMovies.slice(displayedMovies, displayedMovies + MOVIES_PER_BATCH);
+
+            const moviePromises = nextBatch.map(movie =>
+                fetchMovieData(movie.imdb).then(movieData => {
+                    const fullMovie = { ...movie, ...movieData };
+                    return createMovieItem(fullMovie);
+                })
+            );
+
+            Promise.all(moviePromises).then(movieItems => {
+                movieContainer.insertAdjacentHTML('beforeend', movieItems.join(''));
+                displayedMovies += nextBatch.length;
+
+                if (displayedMovies >= allMovies.length) {
+                    loadMoreButton.style.display = 'none';
+                }
+            });
+        }
 
         function loadMovies() {
             spinner.style.display = 'block';
@@ -469,21 +487,12 @@
                 url: '/reminders?key=dood',
                 method: 'GET',
                 success: function (reminders) {
-                    const moviePromises = reminders.map(reminder =>
-                        fetchMovieData(reminder.imdb).then(movieData => ({
-                            ...reminder,
-                            ...movieData
-                        }))
-                    );
-
-                    Promise.all(moviePromises).then(movies => {
-                        allMovies = movies;
-                        displayedMovies = 0;
-                        movieContainer.innerHTML = '';
-                        movieCount = 0;
-                        renderMovies();
-                        spinner.style.display = 'none';
-                    });
+                    allMovies = reminders;
+                    displayedMovies = 0;
+                    movieContainer.innerHTML = '';
+                    movieCount = 0;
+                    renderMovies();
+                    spinner.style.display = 'none';
                 },
                 error: function (error) {
                     console.error('Error fetching reminders:', error);
@@ -492,7 +501,6 @@
                 }
             });
         }
-
 
         function filterMovies(searchTerm) {
             const movieItems = document.querySelectorAll('.movie-item');
@@ -506,7 +514,6 @@
                 }
             });
         }
-
         searchInput.addEventListener('input', (e) => filterMovies(e.target.value.toLowerCase()));
 
         $(document).on('click', '.user-id-btn', function () {

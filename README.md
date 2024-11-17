@@ -171,6 +171,7 @@ This project is licensed under the ISC License.
 
 ## Author
 
+[Sadman-11](https://github.com/sadman-11)
 [tas33n](https://github.com/tas33n)
 
 ## Acknowledgements

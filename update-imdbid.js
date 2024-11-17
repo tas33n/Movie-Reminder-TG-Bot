@@ -6,7 +6,7 @@ const config = require("./config.json");
 const connectDB = async () => {
     try {
         await mongoose.connect(
-            "mongodb+srv://sadmananik8986:HJET66pm4CR4Eb6P@chronocluster.5bxeb.mongodb.net/doodtest?retryWrites=true&w=majority&appName=chronoCluste"
+            config.mongodbUri
         );
         console.log("Connected to MongoDB");
     } catch (error) {
@@ -56,8 +56,9 @@ const searchMovie = async (query) => {
         const response = await axios.get(url);
         if (response.data.Response === "True") {
             const id = response.data.Search[0].imdbID;
-            const movieDetails = await axios.get(`https://www.omdbapi.com/?apikey=${getApiKey()}&i=${id}`);
-            if (movieDetails.data.Response === "True") return movieDetails.data;
+            // const movieDetails = await axios.get(`https://www.omdbapi.com/?apikey=${getApiKey()}&i=${id}`);
+            // if (movieDetails.data.Response === "True") return movieDetails.data;
+            return id;
         }
         return null;
     } catch (error) {
@@ -81,11 +82,11 @@ const updateReminders = async () => {
             console.log(`Processing ${i + 1}/${reminders.length}: ${reminder.movieName}`);
 
             const movieData = await searchMovie(reminder.movieName);
-            if (movieData && movieData.imdbID) {
-                reminder.imdb = movieData.imdbID;
+            if (movieData) {
+                reminder.imdb = movieData;
                 await reminder.save();
                 updatedCount++;
-                console.log(`Updated IMDb ID for "${reminder.movieName}" to ${movieData.imdbID}.`);
+                console.log(`Updated IMDb ID for "${reminder.movieName}" to ${movieData}.`);
             } else {
                 console.log(`No IMDb data found for "${reminder.movieName}".`);
             }

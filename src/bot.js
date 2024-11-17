@@ -34,7 +34,7 @@ async function initializeBot() {
   bot.use((ctx, next) => {
     const update = ctx.update;
     console.log(chalk.blue(`[${new Date().toISOString()}] Received update:`));
-    console.log(parsejson(update));
+    console.log(parsejson(update.message.text));
     return next();
   });
 
@@ -463,7 +463,7 @@ async function initializeBot() {
 
     await db.createReminder(ctx.from.id, nameToSave, month, day, imdb, null);
 
-    const message = `🎬 Annual reminder set for "${nameToSave}" on ${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const message = `🎬 Annual reminder set for "${imdb ? `<a href="https://www.imdb.com/title/${imdb}/">${nameToSave}</a>` : nameToSave}" on ${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
     if (posterUrl) {
       await ctx.replyWithPhoto(
@@ -505,14 +505,16 @@ async function initializeBot() {
             groupID, // chat id
             image,
             {
-              caption: `🎬 Reminder: The movie "${reminder.movieName}" is scheduled for tomorrow (${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')})!`,
+              caption: `🎬 Reminder: The movie "<a href="https://www.imdb.com/title/${reminder.imdb}/">${reminder.movieName}</a>" is scheduled for tomorrow (${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')})!`,
+              parse_mode: 'HTML',
             }
           );
         }
         else {
           await bot.telegram.sendMessage(
             groupID, // chat id
-            `🎬 Reminder: The movie "${reminder.movieName}" is scheduled for tomorrow (${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')})!`
+            `🎬 Reminder: The movie "<a href="https://www.imdb.com/title/${reminder.imdb}/">${reminder.movieName}</a>" is scheduled for tomorrow (${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')})!`,
+            { parse_mode: 'HTML' }
           );
         }
       } else {
@@ -539,7 +541,3 @@ initializeBot()
   .catch(error => {
     console.error('Error initializing bot:', error);
   });
-
-// Handle graceful shutdown
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
