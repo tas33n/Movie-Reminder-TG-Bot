@@ -48,10 +48,18 @@ app.get('/reminders', checkApiKey, async (req, res) => {
 });
 
 // Create a new reminder (protected)
-app.post('/reminders', checkApiKey, async (req, res) => {
+app.post('/reminders', checksudoKey, async (req, res) => {
   try {
-    const { userId, movieId, movieName, releaseDate } = req.body;
-    const reminder = await db.createReminder(userId, movieId, movieName, new Date(releaseDate));
+    const { chatId, movieName, month, day, imdb, img, lastNotifiedYear } = req.body;
+    const existingReminder = await db.getReminderByMovie(movieName);
+    if (existingReminder) {
+      return res.json({
+        isDuplicate: true,
+        info: existingReminder
+      })
+    };
+
+    const reminder = await db.createReminder(chatId, movieName, month, day, imdb, img, lastNotifiedYear);
     res.status(201).json(reminder);
   } catch (error) {
     res.status(400).json({ error: 'Bad request' });

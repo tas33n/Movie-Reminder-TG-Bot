@@ -11,7 +11,6 @@ const reminderSchema = new mongoose.Schema({
   imdb: String,
   img: String,
   lastNotifiedYear: Number
-  
 });
 
 const configSchema = new mongoose.Schema({
@@ -55,7 +54,7 @@ module.exports = {
   },
 
   // reminder db functions
-  createReminder: async (chatId, movieName, month, day, imdb = "", img = "", lastNotifiedYear = null) => {
+  createReminder: async (chatId = "", movieName, month, day, imdb = "", img = "", lastNotifiedYear = null) => {
     const reminder = new Reminder({
       chatId,
       movieName,

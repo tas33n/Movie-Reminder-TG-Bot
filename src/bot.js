@@ -52,8 +52,7 @@ async function initializeBot() {
       .replace(/: (\d+)/g, (m, p1) => `: ${chalk.yellow(p1)}`)
       .replace(/: (true|false)/g, (m, p1) => `: ${chalk.magenta(p1)}`)
       .replace(/: null/g, `: ${chalk.gray("null")}`);
-  }
-
+  };
   // all commands
   const commands = [
     { command: "start", description: "Start the bot" },
@@ -107,7 +106,7 @@ async function initializeBot() {
     );
   });
 
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = 15;
 
   bot.command("list", async (ctx) => {
     const page = 1;
@@ -142,7 +141,8 @@ async function initializeBot() {
     currentReminders.forEach((reminder, index) => {
       message += `${start + index + 1}. ${reminder.movieName} - ${String(
         reminder.month
-      ).padStart(2, "0")}-${String(reminder.day).padStart(2, "0")} (ID: <code>${reminder._id}</code>)\n`;
+      ).padStart(2, "0")}-${String(reminder.day).padStart(2, "0")} (ID: <code>${reminder._id
+        }</code>)\n`;
     });
     message += `\nPage ${page} of ${totalPages}`;
 
@@ -285,7 +285,7 @@ async function initializeBot() {
         "/config set &lt;key&gt; &lt;value&gt; - Set config value\n" +
         "/config delete &lt;key&gt; - Delete config key\n\n" +
         "Example:\n" +
-        "/config set groupId -1001234567890",
+        "/config set groupID -1001234567890",
         {
           parse_mode: "HTML",
           reply_to_message_id: ctx.message.message_id,
