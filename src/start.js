@@ -1,2 +1,0 @@
-require('./bot');
-require('./server');

@@ -78,8 +78,8 @@ module.exports = {
     return await Reminder.find();
   },
 
-  deleteReminder: async (chatId, reminderId) => {
-    await Reminder.findOneAndDelete({ _id: reminderId, chatId });
+  deleteReminder: async (reminderId) => {
+    await Reminder.findOneAndDelete({ _id: reminderId});
   },
 
   getUpcomingReminders: async (month, day, currentYear) => {

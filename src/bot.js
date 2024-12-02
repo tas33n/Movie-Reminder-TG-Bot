@@ -245,7 +245,7 @@ async function initializeBot() {
     }
 
     try {
-      await db.deleteReminder(ctx.from.id, reminderId);
+      await db.deleteReminder(reminderId);
       ctx.reply("✅ Reminder deleted successfully.", {
         reply_to_message_id: ctx.message.message_id,
       });
@@ -410,7 +410,7 @@ async function initializeBot() {
     const input = ctx.message.text.split("/remind ")[1];
     if (!input) {
       return ctx.reply(
-        "⚠️ Please provide input in the format:\n<code>/remind Movie Name; [MM-DD]</code>",
+        "⚠️ Please provide input in the format:\n<code>/remind Movie / Event Name; [MM-DD]</code>",
         { parse_mode: "HTML", reply_to_message_id: ctx.message.message_id }
       );
     }
@@ -557,6 +557,8 @@ async function initializeBot() {
     const reminders = await db.getUpcomingReminders(month, day, currentYear);
 
     reminders.forEach(async (reminder) => {
+      const type = reminder.movieName.toLocaleLowerCase().includes('birthday') ? "Event" : "Movie";
+
       if (reminder.imdb) {
         const data = await omdb.getInfo(reminder.imdb);
         const image = data.Poster === "N/A" ? null : data.Poster;
@@ -565,14 +567,14 @@ async function initializeBot() {
             groupID, // chat id
             image,
             {
-              caption: `🎬 Reminder: The movie "<a href="https://www.imdb.com/title/${reminder.imdb}/">${reminder.movieName}</a>" is scheduled for tomorrow (${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")})!`,
+              caption: `🎬 Reminder: The ${type} "<a href="https://www.imdb.com/title/${reminder.imdb}/">${reminder.movieName}</a>" is scheduled for tomorrow (${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")})!`,
               parse_mode: "HTML",
             }
           );
         } else {
           await bot.telegram.sendMessage(
             groupID, // chat id
-            `🎬 Reminder: The movie "<a href="https://www.imdb.com/title/${reminder.imdb
+            `🎬 Reminder: The ${type} "<a href="https://www.imdb.com/title/${reminder.imdb
             }/">${reminder.movieName}</a>" is scheduled for tomorrow (${String(
               month
             ).padStart(2, "0")}-${String(day).padStart(2, "0")})!`,
@@ -582,7 +584,7 @@ async function initializeBot() {
       } else {
         await bot.telegram.sendMessage(
           groupID, // chat id
-          `🎬 Reminder: The movie "${reminder.movieName
+          `🎬 Reminder: The ${type} "${reminder.movieName
           }" is scheduled for tomorrow (${String(month).padStart(
             2,
             "0"

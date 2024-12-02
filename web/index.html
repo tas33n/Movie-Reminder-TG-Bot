@@ -408,7 +408,10 @@
               <img id="posterPreview" src="" alt="Poster Preview"
                 style="display: none; width: 100%; max-width: 200px;" />
             </div>
-            <button id="Submit" class="btn btn-primary d-block mx-auto my-4">Submit</button>
+            <div class="d-flex justify-content-center gap-4">
+              <button id="Submit" class="btn btn-primary">Submit</button>
+              <button id="Reset" class="btn btn-primary">Reset</button>
+            </div>
           </form>
         </div>
       </div>
@@ -719,7 +722,6 @@
           $("#date").val('');
           $("#imdbField").val('');
           $("#posterPreview").attr("src", '').hide();
-          $("#year").val('');
           loadMovies();
         }
       });
@@ -800,8 +802,10 @@
         }
       }
 
+      // Function to search movies by name
       async function searchMoviesByName(movieName) {
         function checkHasYear(title) {
+          // Regex to match title with year
           const regexWithYear = /(.*?)\s(\d{4})/;
           const match = title.match(regexWithYear);
 
@@ -864,11 +868,13 @@
         }
       }
 
+      // Function to autofill fields
       function autofillFields(data) {
         document.getElementById("movieName").value = data.Title || "";
         document.getElementById("posterPreview").src = data.Poster || "";
         document.getElementById("posterPreview").style.display = data.Poster ? "block" : "none";
 
+        // Format and autofill the release date
         const formattedDate = parseDate(data.Released || "");
         if (formattedDate) {
           const { month, day } = formattedDate;
@@ -895,6 +901,22 @@
           return;
         }
         searchMoviesByName(movieName);
+      });
+    });
+
+    //Reset
+    document.getElementById("Reset").addEventListener("click", function (e) {
+      e.preventDefault()
+      document.getElementById("movieName").value = '';
+      document.getElementById("month").value = '';
+      document.getElementById("date").value = '';
+      document.getElementById("imdbField").value = '';
+      document.getElementById("posterPreview").src = '';
+      document.getElementById("posterPreview").style.display = 'none';
+      Swal.fire({
+        title: "Cleared!",
+        text: "successfully reset the fields.",
+        icon: "success",
       });
     });
   </script>
