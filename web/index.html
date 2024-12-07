@@ -42,14 +42,14 @@
     content="Never miss a movie release! Use the Movie Reminder Telegram Bot to get alerts about upcoming films directly on Telegram." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://misfitsdev.pro" />
-  <meta property="og:image" content="assets/thumb.jpg" />
+  <meta property="og:image" content="/assets/thumb.jpg" />
 
   <!-- Twitter Meta Tags -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Movie Reminder Telegram Bot" />
   <meta name="twitter:description"
     content="Get timely reminders about upcoming movies with our Telegram bot. Never miss your favorite film releases again!" />
-  <meta name="twitter:image" content="assets/thumb.jpg" />
+  <meta name="twitter:image" content="/assets/thumb.jpg" />
 
   <meta name="theme-color" content="#3b82f6" />
 
@@ -359,12 +359,13 @@
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.43/moment-timezone-with-data.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
 
 <body class="light">
   <header class="header">
-    <img src="/assets/gold.png" width="50%" alt="Chronoloid" />
+    <img src="./assets/gold.png" width="50%" alt="Chronoloid" />
     <h2>Reminders</h2>
   </header>
   <div class="container">
@@ -418,6 +419,41 @@
     </div>
 
     <div class="card mb-4">
+      <div class="card-header text-center">
+        <h5>Monthly Release Statistics</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-lg-8 offset-lg-2">
+            <canvas id="myChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header text-center">
+        <h5>Upcoming Reminders</h5>
+      </div>
+      <div class="card-body">
+        <div id="movieSlider" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+          <div class="carousel-inner">
+            <!-- Movie rows will be dynamically added here -->
+          </div>
+          <!-- Controls -->
+          <button class="carousel-control-prev" type="button" data-bs-target="#movieSlider" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#movieSlider" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div class="form-check form-switch">
@@ -449,72 +485,73 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.all.min.js"></script>
   <script>
-    const themeToggle = document.getElementById("themeToggle");
-    const body = document.body;
-    const viewToggle = document.getElementById("viewToggle");
-    const movieContainer = document.getElementById("movieContainer");
-    const searchInput = document.getElementById("searchInput");
-    const spinner = document.getElementById("spinner");
-    const uptimeInfo = document.getElementById("uptime-info");
-    const loadMoreButton = document.getElementById("loadMore");
-    loadMoreButton.addEventListener("click", renderMovies);
+    document.addEventListener("DOMContentLoaded", function () {
+      const themeToggle = document.getElementById("themeToggle");
+      const body = document.body;
+      const viewToggle = document.getElementById("viewToggle");
+      const movieContainer = document.getElementById("movieContainer");
+      const searchInput = document.getElementById("searchInput");
+      const spinner = document.getElementById("spinner");
+      const uptimeInfo = document.getElementById("uptime-info");
+      const loadMoreButton = document.getElementById("loadMore");
+      loadMoreButton.addEventListener("click", renderMovies);
 
-    function setTheme(isDark) {
-      body.classList.toggle("dark", isDark);
-      themeToggle.textContent = isDark ? "☀️" : "🌙";
-      localStorage.setItem("darkMode", isDark);
-    }
+      function setTheme(isDark) {
+        body.classList.toggle("dark", isDark);
+        themeToggle.textContent = isDark ? "☀️" : "🌙";
+        localStorage.setItem("darkMode", isDark);
+      }
 
-    const prefersDark =
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const savedTheme = localStorage.getItem("darkMode");
-    setTheme(savedTheme ? JSON.parse(savedTheme) : prefersDark);
+      const prefersDark =
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const savedTheme = localStorage.getItem("darkMode");
+      setTheme(savedTheme ? JSON.parse(savedTheme) : prefersDark);
 
-    themeToggle.addEventListener("click", () =>
-      setTheme(!body.classList.contains("dark"))
-    );
+      themeToggle.addEventListener("click", () =>
+        setTheme(!body.classList.contains("dark"))
+      );
 
-    viewToggle.addEventListener("change", () => {
-      movieContainer.classList.toggle("movie-grid", !viewToggle.checked);
-      movieContainer.classList.toggle("movie-list", viewToggle.checked);
-    });
-
-    function formatDate(month, day) {
-      const date = new Date(new Date().getFullYear(), month - 1, day);
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
+      viewToggle.addEventListener("change", () => {
+        movieContainer.classList.toggle("movie-grid", !viewToggle.checked);
+        movieContainer.classList.toggle("movie-list", viewToggle.checked);
       });
-    }
 
-    let allMovies = [];
-    let displayedMovies = 0;
-    const MOVIES_PER_BATCH = 32;
-    let movieCount = 0;
-    const fetchedMovies = new Map();
+      function formatDate(month, day) {
+        const date = new Date(new Date().getFullYear(), month - 1, day);
+        return date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
+      }
 
-    function createMovieItem(movie) {
-      const posterUrl = movie.img
-        ? movie.img
-        : "https://i.postimg.cc/nL1vy3gw/giorenzo-gets-sent-to-live-with-simba-and-nala-fan-casting-poster-477058-medium.jpg";
+      let allMovies = [];
+      let displayedMovies = 0;
+      const MOVIES_PER_BATCH = 32;
+      let movieCount = 0;
+      const fetchedMovies = new Map();
 
-      return `
+      function createMovieItem(movie) {
+        const posterUrl = movie.img
+          ? movie.img
+          : "https://i.postimg.cc/nL1vy3gw/giorenzo-gets-sent-to-live-with-simba-and-nala-fan-casting-poster-477058-medium.jpg";
+
+        return `
         <div class="movie-item card position-relative" data-id="${movie._id}">
             <img src="${posterUrl}" alt="${movie.movieName
-        }" class="movie-poster card-img-top">
+          }" class="movie-poster card-img-top">
             <div class="movie-info card-body">
                 <h5 class="card-title">${movie.movieName}</h5>
                 <p class="release-date">${formatDate(
-          movie.month,
-          movie.day
-        )}</p>
+            movie.month,
+            movie.day
+          )}</p>
                 <p>IMDB: ${movie.imdb
-          ? `<a href="https://www.imdb.com/title/${movie.imdb}/" target="_blank">${movie.imdb}</a>`
-          : "N/A"
-        }</p>
+            ? `<a href="https://www.imdb.com/title/${movie.imdb}/" target="_blank">${movie.imdb}</a>`
+            : "N/A"
+          }</p>
                 <button class="user-id-btn btn btn-primary" data-userid="${movie.chatId
-        }">
+          }">
                     User ID: ${movie.chatId}
                 </button>
             </div>
@@ -522,39 +559,377 @@
                 <i>${++movieCount}</i>
             </button>
             <button class="delete-btn btn btn-danger" data-userid="${movie.chatId
-        }" data-id="${movie._id}">
+          }" data-id="${movie._id}">
                 <i class="fas fa-trash-alt"></i>
             </button>
         </div>
     `;
-    }
-
-    function renderMovies() {
-      const nextBatch = allMovies.slice(
-        displayedMovies,
-        displayedMovies + MOVIES_PER_BATCH
-      );
-      const movieItems = nextBatch.map(createMovieItem);
-      movieContainer.insertAdjacentHTML("beforeend", movieItems.join(""));
-      displayedMovies += nextBatch.length;
-      if (displayedMovies >= allMovies.length) {
-        loadMoreButton.style.display = "none";
       }
-    }
 
-    function loadMovies() {
+      function renderMovies() {
+        const nextBatch = allMovies.slice(
+          displayedMovies,
+          displayedMovies + MOVIES_PER_BATCH
+        );
+        const movieItems = nextBatch.map(createMovieItem);
+        movieContainer.insertAdjacentHTML("beforeend", movieItems.join(""));
+        displayedMovies += nextBatch.length;
+        if (displayedMovies >= allMovies.length) {
+          loadMoreButton.style.display = "none";
+        }
+      }
+
+      function loadMovies() {
+        spinner.style.display = "block";
+        $.ajax({
+          url: "/reminders?key=dood",
+          method: "GET",
+          success: function (reminders) {
+            allMovies = reminders;
+            displayedMovies = 0;
+            movieContainer.innerHTML = "";
+            movieCount = 0;
+            renderMovies();
+
+            spinner.style.display = "none";
+          },
+          error: function (error) {
+            console.error("Error fetching reminders:", error);
+            spinner.style.display = "none";
+            showToast("Error fetching reminders", "error");
+          },
+        });
+      }
+
+      function filterMovies(searchTerm) {
+        const movieItems = document.querySelectorAll(".movie-item");
+        movieItems.forEach((item) => {
+          const title = item
+            .querySelector(".card-title")
+            .textContent.toLowerCase();
+          const userId = item.querySelector(".user-id-btn").dataset.userid;
+          if (title.includes(searchTerm) || userId.includes(searchTerm)) {
+            item.style.display = "";
+          } else {
+            item.style.display = "none";
+          }
+        });
+      }
+      searchInput.addEventListener("input", (e) =>
+        filterMovies(e.target.value.toLowerCase())
+      );
+
+      $(document).on("click", ".user-id-btn", function () {
+        const userId = $(this).data("userid");
+        filterMovies(userId.toString());
+      });
+
+      $(document).on("click", ".delete-btn", function () {
+        const movieId = $(this).data("id");
+        const userId = $(this).data("userid");
+        Swal.fire({
+          title: "Enter Admin Key",
+          input: "password",
+          inputAttributes: {
+            autocapitalize: "off",
+          },
+          showCancelButton: true,
+          confirmButtonText: "Delete",
+          showLoaderOnConfirm: true,
+          preConfirm: (adminKey) => {
+            return $.ajax({
+              url: `/reminders/${userId}/${movieId}`,
+              headers: {
+                "X-Sudo-Key": adminKey,
+              },
+              method: "DELETE",
+            })
+              .then((response) => {
+                return response;
+              })
+              .catch((error) => {
+                Swal.showValidationMessage(
+                  `Request failed: ${error.responseJSON.error}`
+                );
+              });
+          },
+          allowOutsideClick: () => !Swal.isLoading(),
+        }).then((result) => {
+          if (result.isConfirmed) {
+            Swal.fire({
+              title: "Deleted!",
+              text: "The movie reminder has been deleted.",
+              icon: "success",
+            });
+            loadMovies();
+          }
+        });
+      });
+
+      function updateUptime() {
+        $.ajax({
+          url: "/uptime",
+          method: "GET",
+          success: function (data) {
+            const uptimeInSeconds = Math.floor(data.uptime);
+            const hours = Math.floor(uptimeInSeconds / 3600);
+            const minutes = Math.floor((uptimeInSeconds % 3600) / 60);
+            const seconds = uptimeInSeconds % 60;
+
+            uptimeInfo.innerHTML = `
+                        <strong>Status:</strong> ${data.status}<br>
+                        <strong>Uptime:</strong> ${hours}h ${minutes}m ${seconds}s
+                    `;
+
+            if (data.status !== "OK") {
+              showToast("Server status is not OK", "warning");
+            }
+          },
+          error: function (error) {
+            console.error("Error fetching uptime:", error);
+            uptimeInfo.innerHTML =
+              "<strong>Status:</strong> Error fetching uptime";
+            showToast("Error fetching server uptime", "error");
+          },
+        });
+      }
+
+      $(document).on("click", "#Submit", function (e) {
+        e.preventDefault();
+        const movieName = $("#movieName").val();
+        const month = $("#month").val();
+        const day = $("#date").val();
+        const imdbId = $("#imdbField").val();
+        const posterUrl = $("#posterPreview").attr("src") || '';
+        Swal.fire({
+          title: "Enter Admin Password",
+          input: "password",
+          inputAttributes: {
+            autocapitalize: "off",
+          },
+          showCancelButton: true,
+          confirmButtonText: "Submit",
+          showLoaderOnConfirm: true,
+          preConfirm: (password) => {
+            if (!password) {
+              Swal.showValidationMessage("Password is required");
+              return false;
+            }
+            return $.ajax({
+              url: "/reminders",
+              method: "POST",
+              contentType: "application/json",
+              data: JSON.stringify({
+                chatId: 1183983867,
+                movieName,
+                month,
+                day,
+                imdb: imdbId,
+                img: posterUrl,
+                lastNotifiedYear: null
+              }),
+              headers: {
+                "X-Sudo-Key": password,
+              }
+            })
+              .then((response) => {
+                return response;
+              })
+              .catch((error) => {
+                Swal.showValidationMessage(`Request failed: ${error.responseJSON.error}`);
+              });
+          },
+          allowOutsideClick: () => !Swal.isLoading(),
+        }).then((result) => {
+          if (result.value.isDuplicate) {
+            Swal.fire({
+              title: "Duplicate Detected",
+              text: `A reminder is already set for the movie: ${result.value.info.movieName} (ID: ${result.value.info._id})`, // Display the movie name
+              icon: "error",
+            });
+          }
+          else if (result.isConfirmed && !result.value.isDuplicate) {
+            Swal.fire({
+              title: "Submitted!",
+              text: "The movie reminder has been successfully submitted.",
+              icon: "success",
+            });
+            $("#movieName").val('');
+            $("#month").val('');
+            $("#date").val('');
+            $("#imdbField").val('');
+            $("#posterPreview").attr("src", '').hide();
+            $("#year").val('');
+            loadMovies();
+          }
+        });
+      });
+
+      function showToast(message, icon) {
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener("mouseenter", Swal.stopTimer);
+            toast.addEventListener("mouseleave", Swal.resumeTimer);
+          },
+        });
+
+        Toast.fire({
+          icon: icon,
+          title: message,
+        });
+      }
+
+      loadMoreButton.addEventListener("click", renderMovies);
+      loadMovies();
+
+      updateUptime();
+      setInterval(updateUptime, 60000);
+
+      function updateDateTime() {
+        const now = new Date();
+        document.getElementById("currentDateTime").textContent =
+          now.toLocaleString();
+      }
+
+      updateDateTime();
+      setInterval(updateDateTime, 1000);
+
+      function parseDate(string) {
+        const parsedDate = moment(
+          string,
+          "DD MMM YYYY",
+          "Asia/Dhaka"
+        );
+
+        const month = parsedDate.month() + 1;
+        const day = parsedDate.date();
+        return { month, day }
+      }
+
+
+
+      let monthlyCounts = new Array(12).fill(0);
       spinner.style.display = "block";
+
       $.ajax({
         url: "/reminders?key=dood",
         method: "GET",
         success: function (reminders) {
-          allMovies = reminders;
-          displayedMovies = 0;
-          movieContainer.innerHTML = "";
-          movieCount = 0;
-          renderMovies();
+          reminders.forEach(movie => {
+            if (movie.month >= 1 && movie.month <= 12) {
+              monthlyCounts[movie.month - 1]++;
+            }
+          });
 
-          spinner.style.display = "none";
+          const chartData = {
+            labels: [
+              'January', 'February', 'March', 'April', 'May', 'June',
+              'July', 'August', 'September', 'October', 'November', 'December'
+            ],
+            datasets: [{
+              label: 'Movies Count',
+              data: monthlyCounts,
+              backgroundColor: [
+                '#f14d54', '#f46f67', '#f68d7c', '#f7a791', '#f9bfa6', '#fbd5bc',
+                '#fdebd1', '#ffdfd4', '#ffd2d6', '#ffc5d9', '#fdb6db', '#fcacde'
+              ],
+              borderColor: '#6a4c9c',
+              borderWidth: 1,
+              hidden: false
+            }]
+          };
+
+          var ctx = document.getElementById('myChart').getContext('2d');
+          var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: chartData,
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  position: 'top',
+                },
+                title: {
+                  display: true,
+                  text: 'Monthly Movies Released Count'
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    stepSize: 10,
+                    max: 100
+                  }
+                }
+              }
+            }
+          });
+
+          // Sort movies by upcoming release
+          const today = new Date();
+          const todayMonth = today.getMonth() + 1;
+          const todayDay = today.getDate();
+
+          function daysDifference(month1, day1, month2, day2) {
+            const date1 = new Date(today.getFullYear(), month1 - 1, day1);
+            const date2 = new Date(today.getFullYear(), month2 - 1, day2);
+            if (date2 < date1) {
+              date2.setFullYear(date2.getFullYear() + 1);
+            }
+            return Math.floor((date2 - date1) / (1000 * 60 * 60 * 24));
+          }
+
+          const sortedMoviesAll = reminders.sort((a, b) => {
+            const daysA = daysDifference(todayMonth, todayDay, a.month, a.day);
+            const daysB = daysDifference(todayMonth, todayDay, b.month, b.day);
+            return daysA - daysB;
+          });
+          const sortedMovies = sortedMoviesAll.slice(0, 12)
+
+          // Dynamically create movie cards
+          const carouselInner = document.querySelector('.carousel-inner');
+          function getCardsPerSlide() {
+            if (window.innerWidth >= 1200) return 6; // Extra-large screens
+            if (window.innerWidth >= 992) return 4; // Large screens
+            if (window.innerWidth >= 768) return 3; // Medium screens
+            return 2; // Small screens
+          }
+          const chunkSize = getCardsPerSlide();
+
+          for (let i = 0; i < sortedMovies.length; i += chunkSize) {
+            const chunk = sortedMovies.slice(i, i + chunkSize);
+            const isActive = i === 0 ? 'active' : '';
+            const movieRow = `
+    <div class="carousel-item ${isActive}">
+      <div class="row justify-content-center">
+        ${chunk.map(movie => `
+          <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3 d-flex align-items-stretch">
+            <div class="card movie-card mx-auto" style="width: 100%; max-width: 180px;">
+              <img 
+                src="${movie.img}" 
+                class="card-img-top lazy-image" 
+                alt="${movie.movieName}" 
+                style="height: 150px; object-fit: cover;">
+              <div class="card-body">
+                <h6 class="card-title text-truncate" title="${movie.movieName}">
+                  ${movie.movieName}
+                </h6>
+                <p class="card-text">Release Date: ${movie.month}/${movie.day}</p>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+            carouselInner.insertAdjacentHTML('beforeend', movieRow);
+          }
+          spinner.style.display = "none"; // Hide spinner after chart is rendered
         },
         error: function (error) {
           console.error("Error fetching reminders:", error);
@@ -562,218 +937,7 @@
           showToast("Error fetching reminders", "error");
         },
       });
-    }
 
-    function filterMovies(searchTerm) {
-      const movieItems = document.querySelectorAll(".movie-item");
-      movieItems.forEach((item) => {
-        const title = item
-          .querySelector(".card-title")
-          .textContent.toLowerCase();
-        const userId = item.querySelector(".user-id-btn").dataset.userid;
-        if (title.includes(searchTerm) || userId.includes(searchTerm)) {
-          item.style.display = "";
-        } else {
-          item.style.display = "none";
-        }
-      });
-    }
-    searchInput.addEventListener("input", (e) =>
-      filterMovies(e.target.value.toLowerCase())
-    );
-
-    $(document).on("click", ".user-id-btn", function () {
-      const userId = $(this).data("userid");
-      filterMovies(userId.toString());
-    });
-
-    $(document).on("click", ".delete-btn", function () {
-      const movieId = $(this).data("id");
-      const userId = $(this).data("userid");
-      Swal.fire({
-        title: "Enter Admin Key",
-        input: "password",
-        inputAttributes: {
-          autocapitalize: "off",
-        },
-        showCancelButton: true,
-        confirmButtonText: "Delete",
-        showLoaderOnConfirm: true,
-        preConfirm: (adminKey) => {
-          return $.ajax({
-            url: `/reminders/${userId}/${movieId}`,
-            headers: {
-              "X-Sudo-Key": adminKey,
-            },
-            method: "DELETE",
-          })
-            .then((response) => {
-              return response;
-            })
-            .catch((error) => {
-              Swal.showValidationMessage(
-                `Request failed: ${error.responseJSON.error}`
-              );
-            });
-        },
-        allowOutsideClick: () => !Swal.isLoading(),
-      }).then((result) => {
-        if (result.isConfirmed) {
-          Swal.fire({
-            title: "Deleted!",
-            text: "The movie reminder has been deleted.",
-            icon: "success",
-          });
-          loadMovies();
-        }
-      });
-    });
-
-    function updateUptime() {
-      $.ajax({
-        url: "/uptime",
-        method: "GET",
-        success: function (data) {
-          const uptimeInSeconds = Math.floor(data.uptime);
-          const hours = Math.floor(uptimeInSeconds / 3600);
-          const minutes = Math.floor((uptimeInSeconds % 3600) / 60);
-          const seconds = uptimeInSeconds % 60;
-
-          uptimeInfo.innerHTML = `
-                        <strong>Status:</strong> ${data.status}<br>
-                        <strong>Uptime:</strong> ${hours}h ${minutes}m ${seconds}s
-                    `;
-
-          if (data.status !== "OK") {
-            showToast("Server status is not OK", "warning");
-          }
-        },
-        error: function (error) {
-          console.error("Error fetching uptime:", error);
-          uptimeInfo.innerHTML =
-            "<strong>Status:</strong> Error fetching uptime";
-          showToast("Error fetching server uptime", "error");
-        },
-      });
-    }
-
-    $(document).on("click", "#Submit", function (e) {
-      e.preventDefault();
-      const movieName = $("#movieName").val();
-      const month = $("#month").val();
-      const day = $("#date").val();
-      const imdbId = $("#imdbField").val();
-      const posterUrl = $("#posterPreview").attr("src") || '';
-      Swal.fire({
-        title: "Enter Admin Password",
-        input: "password",
-        inputAttributes: {
-          autocapitalize: "off",
-        },
-        showCancelButton: true,
-        confirmButtonText: "Submit",
-        showLoaderOnConfirm: true,
-        preConfirm: (password) => {
-          if (!password) {
-            Swal.showValidationMessage("Password is required");
-            return false;
-          }
-          return $.ajax({
-            url: "/reminders",
-            method: "POST",
-            contentType: "application/json",
-            data: JSON.stringify({
-              chatId: 1183983867,
-              movieName,
-              month,
-              day,
-              imdb: imdbId,
-              img: posterUrl,
-              lastNotifiedYear: null
-            }),
-            headers: {
-              "X-Sudo-Key": password,
-            }
-          })
-            .then((response) => {
-              return response;
-            })
-            .catch((error) => {
-              Swal.showValidationMessage(`Request failed: ${error.responseJSON.error}`);
-            });
-        },
-        allowOutsideClick: () => !Swal.isLoading(),
-      }).then((result) => {
-        if (result.value.isDuplicate) {
-          Swal.fire({
-            title: "Duplicate Detected",
-            text: `A reminder is already set for the movie: ${result.value.info.movieName} (ID: ${result.value.info._id})`, // Display the movie name
-            icon: "error",
-          });
-        }
-        else if (result.isConfirmed && !result.value.isDuplicate) {
-          Swal.fire({
-            title: "Submitted!",
-            text: "The movie reminder has been successfully submitted.",
-            icon: "success",
-          });
-          $("#movieName").val('');
-          $("#month").val('');
-          $("#date").val('');
-          $("#imdbField").val('');
-          $("#posterPreview").attr("src", '').hide();
-          loadMovies();
-        }
-      });
-    });
-
-    function showToast(message, icon) {
-      const Toast = Swal.mixin({
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-        didOpen: (toast) => {
-          toast.addEventListener("mouseenter", Swal.stopTimer);
-          toast.addEventListener("mouseleave", Swal.resumeTimer);
-        },
-      });
-
-      Toast.fire({
-        icon: icon,
-        title: message,
-      });
-    }
-
-    loadMoreButton.addEventListener("click", renderMovies);
-    loadMovies();
-
-    updateUptime();
-    setInterval(updateUptime, 60000);
-
-    function updateDateTime() {
-      const now = new Date();
-      document.getElementById("currentDateTime").textContent =
-        now.toLocaleString();
-    }
-
-    updateDateTime();
-    setInterval(updateDateTime, 1000);
-
-    function parseDate(string) {
-      const parsedDate = moment(
-        string,
-        "DD MMM YYYY",
-        "Asia/Dhaka"
-      );
-
-      const month = parsedDate.month() + 1;
-      const day = parsedDate.date();
-      return { month, day }
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
       const monthSelect = document.getElementById("month");
       const dateSelect = document.getElementById("date");
 
@@ -902,21 +1066,20 @@
         }
         searchMoviesByName(movieName);
       });
-    });
-
-    //Reset
-    document.getElementById("Reset").addEventListener("click", function (e) {
-      e.preventDefault()
-      document.getElementById("movieName").value = '';
-      document.getElementById("month").value = '';
-      document.getElementById("date").value = '';
-      document.getElementById("imdbField").value = '';
-      document.getElementById("posterPreview").src = '';
-      document.getElementById("posterPreview").style.display = 'none';
-      Swal.fire({
-        title: "Cleared!",
-        text: "successfully reset the fields.",
-        icon: "success",
+      //Reset
+      document.getElementById("Reset").addEventListener("click", function (e) {
+        e.preventDefault()
+        document.getElementById("movieName").value = '';
+        document.getElementById("month").value = '';
+        document.getElementById("date").value = '';
+        document.getElementById("imdbField").value = '';
+        document.getElementById("posterPreview").src = '';
+        document.getElementById("posterPreview").style.display = 'none';
+        Swal.fire({
+          title: "Cleared!",
+          text: "successfully reset the fields.",
+          icon: "success",
+        });
       });
     });
   </script>
